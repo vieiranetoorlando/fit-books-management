@@ -41,5 +41,5 @@ app.post('/books', async (req, res) => {
 
 const PORT = 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Back-end rodando em http://localhost:${PORT}`);
+  console.log(`Back-end rodando em http://localhost:${PORT}`);
 });
