@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+:root {
+  --color-brand-text: #374151;
+}
+
+body {
+  @apply bg-black antialiased;
+  color: var(--color-brand-text);
+}
+
+#root {
+  min-height: 100vh;
+}

@@ -1,84 +1,214 @@
-# Gerenciamento de Acervo - FIT
+# FIT Livros - Desafio Full Stack
 
-Sistema Full Stack de gerenciamento de livros desenvolvido para o desafio técnico da FIT Tecnologia. 
-O projeto foca em **Fidelidade ao Design**, **Tipagem Estrita** e **Robustez de Dados**.
+Aplicacao full stack para gestao de acervo de livros, implementada com foco em:
+- fidelidade ao design do Figma;
+- robustez de API e validacao de dados;
+- organizacao de codigo e manutenibilidade;
+- execucao simples com Docker.
 
----
+## 1. Visao Geral
 
-## Tecnologias Principais
+O projeto possui:
+- frontend React para listagem, busca, cadastro, edicao, exclusao e detalhes de livros;
+- backend Express + Prisma com API REST e upload de capas;
+- PostgreSQL como persistencia;
+- testes automatizados para frontend e backend;
+- ambiente containerizado para subir toda a stack com um comando.
 
-- **Backend:** Node.js (ESM), TypeScript, Express, Prisma ORM
-- **Frontend:** React, TypeScript, Vite, Tailwind CSS
-- **Banco de Dados:** PostgreSQL (via Docker)
-- **Padronização:** ESLint, Prettier e Conventional Commits
+## 2. Stack
 
----
+- Frontend: React 19, TypeScript, Vite, Tailwind CSS 4, Vitest, Testing Library
+- Backend: Node.js, TypeScript, Express 5, Prisma, Multer, Vitest, Supertest
+- Banco de dados: PostgreSQL 15
+- Infra local: Docker Compose
 
-## Estrutura do Repositório
+## 3. Funcionalidades
 
+- Listagem de livros com ordenacao por criacao
+- Busca por titulo e autor
+- Visualizacao de detalhes do livro
+- Cadastro e edicao de livro
+- Exclusao com confirmacao
+- Upload de capa (JPG/PNG/WEBP ate 5MB)
+- Fallback visual para livros sem imagem
+- Notificacoes de sucesso/erro no frontend
+- Validacoes de payload no backend
+- Endpoint de health check (`GET /health`)
+
+## 4. Arquitetura e Decisoes Tecnicas
+
+### Frontend
+- Separacao em `pages`, `components`, `services` e `types`.
+- `services/bookService.ts` centraliza chamadas HTTP.
+- Estado da pagina principal concentra fluxo de CRUD e modais.
+- `BookCover` abstrai fallback da capa para evitar duplicacao de logica.
+
+### Backend
+- `src/app.ts` concentra middlewares, rotas e validacoes de dominio.
+- `src/server.ts` apenas inicia o servidor (facilita testes do app isolado).
+- Prisma como camada de acesso a dados.
+- Validacoes server-side de obrigatoriedade, formato e tamanho maximo.
+
+### Docker
+- `docker-compose.yml` sobe `db`, `backend` e `frontend`.
+- Healthchecks para orquestracao mais previsivel.
+- Backend sobe aplicando migrations automaticamente.
+- Frontend gera build estatico e serve via Nginx.
+
+## 5. Estrutura de Pastas
+
+```text
+.
+|-- backend
+|   |-- prisma
+|   |-- src
+|   |-- Dockerfile
+|-- frontend
+|   |-- src
+|   |-- Dockerfile
+|   |-- nginx.conf
+|-- docker-compose.yml
+|-- .env.example
 ```
-/backend          # API REST com Prisma e validação de tipos
-/frontend         # SPA React otimizada com Vite e Tailwind
-/docker           # Configurações de infraestrutura
-docker-compose.yml # Orquestração do PostgreSQL e serviços
+
+## 6. Variaveis de Ambiente
+
+### Raiz do projeto (`.env`)
+Baseie-se em `.env.example`:
+
+```env
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=password123
+POSTGRES_DB=biblioteca_db
+DB_PORT=5432
+BACKEND_PORT=3000
+FRONTEND_PORT=5173
 ```
 
----
+### Frontend (`frontend/.env`) para execucao sem Docker
+Baseie-se em `frontend/.env.example`:
 
-## Instruções de Instalação e Execução
+```env
+VITE_API_URL=http://localhost:3000
+```
 
-### 1. Ambiente de Banco de Dados
+## 7. Como Rodar com Docker (Recomendado)
 
-Certifique-se de possuir o Docker instalado e o Node.js (v18+).  
-Na raiz do projeto, execute:
-
+1. Clonar repositiorio:
 ```bash
-docker-compose up -d
+git clone <URL_DO_REPOSITORIO>
+cd projeto-fit-livros
 ```
 
----
+2. Criar `.env`:
+```bash
+# Linux/macOS
+cp .env.example .env
 
-### 2. Configuração do Backend
+# Windows PowerShell
+Copy-Item .env.example .env
+```
 
+3. Subir a stack:
+```bash
+docker compose up -d --build
+```
+
+4. Acessar aplicacao:
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3000/health`
+
+5. Parar a stack:
+```bash
+docker compose down
+```
+
+## 8. Como Rodar sem Docker
+
+### Banco
+Suba um PostgreSQL local e configure a `DATABASE_URL` do backend.
+
+### Backend
 ```bash
 cd backend
 npm install
-# Configure o seu .env com a DATABASE_URL do Docker
-npx prisma migrate dev      # Cria as tabelas
-npx prisma db seed          # Popula o banco com os dados do design (Figma)
+npx prisma generate
+npx prisma migrate dev
+npx prisma db seed
 npm run dev
 ```
 
----
-
-### 3. Configuração do Frontend
-
+### Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-### 4. Configuração do Frontend
+## 9. Testes e Qualidade
 
+### Frontend
 ```bash
-[x] CRUD Completo: Cadastro, Listagem, Edição e Exclusão de livros.
-
-[x] Busca Dinâmica: Filtro de livros por título ou autor.
-
-[x] Persistência: Dados salvos em banco relacional PostgreSQL.
-
-[x] Seed de Dados: Script para carregar os livros exatos do protótipo Figma.
-
-[x] Responsividade: Interface adaptável para Mobile e Desktop.
+cd frontend
+npm run lint
+npm test
+npm run build
 ```
 
-### 5. Decisões Técnicas (Qualidade)
-
+### Backend
 ```bash
-Prisma Client: Utilizado para garantir que qualquer erro de banco seja capturado em tempo de compilação.
-
-CORS: Configurado para permitir a comunicação segura entre o Frontend (Vite) e o Backend (Express).
-
-Tratamento de Exceções: Todas as rotas possuem blocos try/catch e retornam status codes HTTP semânticos (201, 204, 404, 500).
+cd backend
+npm run build
+npm test
 ```
+
+## 10. Troubleshooting
+
+### Erro de porta em uso (`bind: ... port is already allocated`)
+Edite o `.env` na raiz para trocar portas:
+
+```env
+DB_PORT=5433
+BACKEND_PORT=3001
+FRONTEND_PORT=5174
+```
+
+Depois:
+```bash
+docker compose up -d --build
+```
+
+### API nao sobe por problema de banco/migration
+```bash
+docker compose logs -f backend
+docker compose logs -f db
+```
+
+Se necessario, resetar volumes locais:
+```bash
+docker compose down -v
+docker compose up -d --build
+```
+
+### Verificar status dos containers
+```bash
+docker compose ps
+```
+
+### Popular dados de exemplo manualmente
+```bash
+docker compose exec backend npx prisma db seed
+```
+
+## 11. Criticidade e Trade-offs
+
+- Foco em validação no backend para garantir integridade dos dados independentemente do frontend.
+- Upload local simplifica o desafio; em producao real, o ideal seria storage externo (S3, GCS, etc.).
+- Frontend usa estado local por simplicidade; para escala maior, caberia cache de dados dedicado.
+
+## 12. Melhorias Futuras
+
+- Cobertura de testes de integracao mais extensa (cenarios de erro de rede e concorrencia).
+- Autenticacao/autorizacao.
+- Observabilidade (logs estruturados, metricas e tracing).
+- Pipeline CI para lint, testes e build em pull request.

@@ -12,8 +12,8 @@ model Book {
   title       String
   author      String
   description String   @db.Text
+  content     String?  @db.Text
   publishedAt DateTime
   coverUrl    String?
   createdAt   DateTime @default(now())
-  content   String?  @db.Text
 }
