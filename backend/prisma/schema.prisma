@@ -15,4 +15,5 @@ model Book {
   publishedAt DateTime
   coverUrl    String?
   createdAt   DateTime @default(now())
+  content   String?  @db.Text
 }
