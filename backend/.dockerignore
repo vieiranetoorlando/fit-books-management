@@ -2,4 +2,9 @@ node_modules
 npm-debug.log
 dist
 .env
-uploads
+uploads/*
+!uploads/seed/
+!uploads/seed/*.jpg
+!uploads/seed/*.jpeg
+!uploads/seed/*.png
+!uploads/seed/*.webp

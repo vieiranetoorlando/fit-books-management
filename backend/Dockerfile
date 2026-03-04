@@ -20,8 +20,11 @@ RUN npm ci --omit=dev
 
 COPY --from=build /app/dist ./dist
 COPY prisma ./prisma
+COPY uploads/seed ./seed-uploads
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 RUN npx prisma generate
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
+CMD ["./docker-entrypoint.sh"]
