@@ -1,5 +1,5 @@
 ﻿import { ChevronLeft } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Book } from '../types/book';
 import { BookCover } from './BookCover';
 
@@ -11,14 +11,24 @@ interface BookDetailsModalProps {
 }
 
 function formatDate(value: string): string {
-  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value));
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(value));
 }
 
 export function BookDetailsModal({ book, onClose, onEdit, onDelete }: BookDetailsModalProps) {
   const extraContent =
     book.content && book.content.trim() !== book.description.trim() ? book.content : null;
+  const backButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    backButtonRef.current?.focus();
+    const { overflow } = document.body.style;
+    document.body.style.overflow = 'hidden';
+
     function handleEscape(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         onClose();
@@ -26,15 +36,28 @@ export function BookDetailsModal({ book, onClose, onEdit, onDelete }: BookDetail
     }
 
     window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+    return () => {
+      document.body.style.overflow = overflow;
+      window.removeEventListener('keydown', handleEscape);
+    };
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black">
-      <div className="mx-auto min-h-screen w-full max-w-[1440px] bg-[#d9d9dd] px-4 pb-10 pt-5 md:px-8 md:pt-8">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black pt-5">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="book-details-modal-title"
+        className="mx-auto min-h-[calc(100vh-20px)] w-full max-w-[1440px] bg-[#d9d9dd] px-4 pb-10 pt-5 md:px-8 md:pt-8"
+      >
         <main className="mx-auto w-full max-w-[1020px]">
           <header className="mb-8 flex items-center justify-between md:mb-10">
-            <button type="button" onClick={onClose} className="flex items-center gap-2 text-[16px] font-semibold text-zinc-900 md:text-[22px]">
+            <button
+              ref={backButtonRef}
+              type="button"
+              onClick={onClose}
+              className="flex items-center gap-2 text-[16px] font-semibold text-zinc-900 md:text-[22px]"
+            >
               <ChevronLeft size={30} />
               Voltar
             </button>
@@ -49,9 +72,11 @@ export function BookDetailsModal({ book, onClose, onEdit, onDelete }: BookDetail
             </div>
           </header>
 
-          <section className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_270px] lg:gap-12">
+          <section className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-10">
             <div>
-              <h1 className="max-w-[760px] text-[44px] font-bold leading-[1.08] text-zinc-900 md:text-[56px]">{book.title}</h1>
+              <h1 id="book-details-modal-title" className="max-w-[760px] text-[44px] font-semibold leading-[1.08] text-zinc-900 md:text-[58px]">
+                {book.title}
+              </h1>
 
               <div className="mt-6 grid gap-4 text-[18px] text-zinc-900 md:mt-8 md:grid-cols-2 md:gap-8 md:text-[22px]">
                 <p>Por {book.author}</p>
@@ -64,12 +89,12 @@ export function BookDetailsModal({ book, onClose, onEdit, onDelete }: BookDetail
               </div>
             </div>
 
-            <div className="mx-auto h-[360px] w-[236px] md:h-[420px] md:w-[270px]">
+            <div className="mx-auto h-[388px] w-[252px] md:h-[430px] md:w-[280px] lg:h-[460px] lg:w-[300px]">
               <BookCover
                 title={book.title}
                 author={book.author}
                 coverUrl={book.coverUrl}
-                className="h-full w-full rounded-sm object-cover"
+                className="h-full w-full rounded-sm object-contain"
               />
             </div>
           </section>

@@ -1,5 +1,5 @@
 import { CalendarDays, Image as ImageIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { uploadBookCover } from '../services/bookService';
 import type { Book, BookPayload } from '../types/book';
@@ -41,7 +41,7 @@ function toDisplayDate(value: string): string {
     return '';
   }
 
-  return new Intl.DateTimeFormat('pt-BR').format(date);
+  return new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(date);
 }
 
 function toIsoDate(value: string): string {
@@ -88,12 +88,31 @@ export function BookFormModal({ isSaving, bookToEdit, onClose, onSubmit }: BookF
   const [isUploading, setIsUploading] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
   const [imageMode, setImageMode] = useState<'file' | 'url'>('file');
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const hasCover = Boolean(form.coverUrl.trim()) && !previewFailed;
 
   useEffect(() => {
     setPreviewFailed(false);
   }, [form.coverUrl]);
+
+  useEffect(() => {
+    titleInputRef.current?.focus();
+    const { overflow } = document.body.style;
+    document.body.style.overflow = 'hidden';
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape' && !isSaving) {
+        onClose();
+      }
+    }
+
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      document.body.style.overflow = overflow;
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isSaving, onClose]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -142,8 +161,13 @@ export function BookFormModal({ isSaving, bookToEdit, onClose, onSubmit }: BookF
 
   return (
     <div className="fixed inset-0 z-[55] overflow-y-auto bg-black/45 p-3 md:p-8">
-      <div className="mx-auto my-2 w-full max-w-[780px] rounded-[22px] bg-zinc-300 p-4 shadow-2xl md:my-4 md:max-h-[92vh] md:overflow-y-auto md:p-10">
-        <h2 className="mb-7 text-center text-[34px] font-bold text-zinc-900 md:text-[52px]">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="book-form-modal-title"
+        className="mx-auto my-2 w-full max-w-[780px] rounded-[22px] bg-zinc-300 p-4 shadow-2xl md:my-4 md:max-h-[92vh] md:overflow-y-auto md:p-10"
+      >
+        <h2 id="book-form-modal-title" className="mb-7 text-center text-[34px] font-bold text-zinc-900 md:text-[52px]">
           {bookToEdit ? 'Editar livro' : 'Novo livro'}
         </h2>
 
@@ -151,6 +175,7 @@ export function BookFormModal({ isSaving, bookToEdit, onClose, onSubmit }: BookF
           <div className="grid gap-4 md:grid-cols-[1fr_238px] md:gap-6">
             <div className="space-y-3 md:space-y-4">
               <input
+                ref={titleInputRef}
                 type="text"
                 value={form.title}
                 onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}

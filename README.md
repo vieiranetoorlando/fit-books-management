@@ -94,7 +94,7 @@ VITE_API_URL=http://localhost:3000
 
 ## 7. Como Rodar com Docker (Recomendado)
 
-1. Clonar repositiorio:
+1. Clonar repositorio:
 ```bash
 git clone <URL_DO_REPOSITORIO>
 cd projeto-fit-livros
@@ -118,15 +118,45 @@ docker compose up -d --build
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:3000/health`
 
-5. Parar a stack:
+5. Popular dados iniciais (opcional, recomendado para demonstracao):
+```bash
+docker compose exec backend npx prisma db seed
+```
+
+6. Parar a stack:
 ```bash
 docker compose down
 ```
 
-## 8. Como Rodar sem Docker
+## 8. Checklist de Clone Limpo
+
+Para validar que qualquer pessoa consegue rodar:
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+docker compose ps
+```
+
+Resultados esperados:
+- `db` com status `healthy`
+- `backend` com status `healthy`
+- `frontend` com status `up`
+- `http://localhost:3000/health` respondendo `{"status":"ok"}`
+- `http://localhost:5173` carregando a aplicacao
+
+## 9. Como Rodar sem Docker
 
 ### Banco
 Suba um PostgreSQL local e configure a `DATABASE_URL` do backend.
+
+Pre-check recomendado antes do backend:
+```bash
+docker compose up -d db
+docker compose ps
+```
+
+O status esperado para o banco e `healthy`.
 
 ### Backend
 ```bash
@@ -145,7 +175,7 @@ npm install
 npm run dev
 ```
 
-## 9. Testes e Qualidade
+## 10. Testes e Qualidade
 
 ### Frontend
 ```bash
@@ -162,7 +192,7 @@ npm run build
 npm test
 ```
 
-## 10. Troubleshooting
+## 11. Troubleshooting
 
 ### Erro de porta em uso (`bind: ... port is already allocated`)
 Edite o `.env` na raiz para trocar portas:
@@ -190,6 +220,22 @@ docker compose down -v
 docker compose up -d --build
 ```
 
+### Erro `Can't reach database server at localhost:5432`
+
+Esse erro indica que o backend iniciou, mas o banco local nao estava ativo.
+
+Resolucao rapida:
+```bash
+docker compose up -d db
+docker compose ps
+```
+
+Quando o `db` estiver `healthy`, rode novamente:
+```bash
+cd backend
+npm run dev
+```
+
 ### Verificar status dos containers
 ```bash
 docker compose ps
@@ -200,13 +246,20 @@ docker compose ps
 docker compose exec backend npx prisma db seed
 ```
 
-## 11. Criticidade e Trade-offs
+### Capas do seed nao aparecem
+Para as capas padrao funcionarem em qualquer maquina, os arquivos locais precisam existir em `backend/uploads/seed` com estes nomes:
+- `a-revolucao-dos-bichos.jpg`
+- `dom-casmurro.jpg`
+- `o-senhor-dos-aneis-a-sociedade-do-anel.jpg`
+- `javascript-the-good-parts.jpg`
 
-- Foco em validação no backend para garantir integridade dos dados independentemente do frontend.
+## 12. Criticidade e Trade-offs
+
+- Foco em validacao no backend para garantir integridade dos dados independentemente do frontend.
 - Upload local simplifica o desafio; em producao real, o ideal seria storage externo (S3, GCS, etc.).
 - Frontend usa estado local por simplicidade; para escala maior, caberia cache de dados dedicado.
 
-## 12. Melhorias Futuras
+## 13. Melhorias Futuras
 
 - Cobertura de testes de integracao mais extensa (cenarios de erro de rede e concorrencia).
 - Autenticacao/autorizacao.

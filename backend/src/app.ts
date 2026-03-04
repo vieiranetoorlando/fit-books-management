@@ -1,10 +1,10 @@
-﻿import express from 'express';
+import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
 import fs from 'node:fs';
 import path from 'node:path';
-import { Prisma } from '@prisma/client';
 import { prisma } from './lib/prisma.js';
+import { buildCreateData, buildUpdateData, isNotFoundError, type BookPayload } from './domain/bookValidation.js';
 
 export const app = express();
 
@@ -40,134 +40,6 @@ const upload = multer({
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(uploadsDir));
-
-interface BookPayload {
-  title?: string;
-  author?: string;
-  description?: string;
-  content?: string;
-  publishedAt?: string;
-  coverUrl?: string;
-}
-
-const MAX_TITLE_LENGTH = 180;
-const MAX_AUTHOR_LENGTH = 140;
-const MAX_DESCRIPTION_LENGTH = 4000;
-const MAX_CONTENT_LENGTH = 20000;
-const MAX_COVER_URL_LENGTH = 2048;
-
-function isNotFoundError(error: unknown): boolean {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025';
-}
-
-function ensureMaxLength(field: string, value: string, max: number) {
-  if (value.length > max) {
-    throw new Error(`${field} excedeu o limite de ${max} caracteres.`);
-  }
-}
-
-function parseRequiredDate(value: string | undefined): Date {
-  if (!value) {
-    throw new Error('Data de publicacao e obrigatoria.');
-  }
-
-  const parsedDate = new Date(value);
-  if (Number.isNaN(parsedDate.getTime())) {
-    throw new Error('Data de publicacao invalida.');
-  }
-
-  return parsedDate;
-}
-
-function buildCreateData(payload: BookPayload): Prisma.BookCreateInput {
-  const title = payload.title?.trim();
-  const author = payload.author?.trim();
-  const description = payload.description?.trim();
-  const content = payload.content?.trim();
-  const coverUrl = payload.coverUrl?.trim();
-
-  if (!title) {
-    throw new Error('Titulo e obrigatorio.');
-  }
-  if (!author) {
-    throw new Error('Autor e obrigatorio.');
-  }
-  if (!description) {
-    throw new Error('Descricao e obrigatoria.');
-  }
-
-  ensureMaxLength('Titulo', title, MAX_TITLE_LENGTH);
-  ensureMaxLength('Autor', author, MAX_AUTHOR_LENGTH);
-  ensureMaxLength('Descricao', description, MAX_DESCRIPTION_LENGTH);
-  if (content) {
-    ensureMaxLength('Conteudo', content, MAX_CONTENT_LENGTH);
-  }
-  if (coverUrl) {
-    ensureMaxLength('URL da capa', coverUrl, MAX_COVER_URL_LENGTH);
-  }
-
-  return {
-    title,
-    author,
-    description,
-    publishedAt: parseRequiredDate(payload.publishedAt),
-    content: content || null,
-    coverUrl: coverUrl || null,
-  };
-}
-
-function buildUpdateData(payload: BookPayload): Prisma.BookUpdateInput {
-  const data: Prisma.BookUpdateInput = {};
-
-  if (payload.title !== undefined) {
-    const title = payload.title.trim();
-    if (!title) {
-      throw new Error('Titulo e obrigatorio.');
-    }
-    ensureMaxLength('Titulo', title, MAX_TITLE_LENGTH);
-    data.title = title;
-  }
-
-  if (payload.author !== undefined) {
-    const author = payload.author.trim();
-    if (!author) {
-      throw new Error('Autor e obrigatorio.');
-    }
-    ensureMaxLength('Autor', author, MAX_AUTHOR_LENGTH);
-    data.author = author;
-  }
-
-  if (payload.description !== undefined) {
-    const description = payload.description.trim();
-    if (!description) {
-      throw new Error('Descricao e obrigatoria.');
-    }
-    ensureMaxLength('Descricao', description, MAX_DESCRIPTION_LENGTH);
-    data.description = description;
-  }
-
-  if (payload.publishedAt !== undefined) {
-    data.publishedAt = parseRequiredDate(payload.publishedAt);
-  }
-
-  if (payload.content !== undefined) {
-    const content = payload.content.trim();
-    if (content) {
-      ensureMaxLength('Conteudo', content, MAX_CONTENT_LENGTH);
-    }
-    data.content = content || null;
-  }
-
-  if (payload.coverUrl !== undefined) {
-    const coverUrl = payload.coverUrl.trim();
-    if (coverUrl) {
-      ensureMaxLength('URL da capa', coverUrl, MAX_COVER_URL_LENGTH);
-    }
-    data.coverUrl = coverUrl || null;
-  }
-
-  return data;
-}
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });

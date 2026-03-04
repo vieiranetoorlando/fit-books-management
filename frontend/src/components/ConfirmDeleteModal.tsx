@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+
 interface ConfirmDeleteModalProps {
   isOpen: boolean;
   title: string;
@@ -15,18 +17,53 @@ export function ConfirmDeleteModal({
   onCancel,
   onConfirm,
 }: ConfirmDeleteModalProps) {
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    cancelButtonRef.current?.focus();
+    const { overflow } = document.body.style;
+    document.body.style.overflow = 'hidden';
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape' && !isLoading) {
+        onCancel();
+      }
+    }
+
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      document.body.style.overflow = overflow;
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isLoading, isOpen, onCancel]);
+
   if (!isOpen) {
     return null;
   }
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/45 p-4">
-      <div className="w-full max-w-[590px] rounded-3xl bg-zinc-100 px-6 py-7 shadow-2xl md:px-10 md:py-9">
-        <h3 className="text-center text-[38px] font-bold leading-none text-zinc-900 md:text-[56px]">{title}</h3>
-        <p className="mt-5 text-center text-[24px] leading-tight text-zinc-700 md:mt-7 md:text-[40px]">{message}</p>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-delete-title"
+        aria-describedby="confirm-delete-description"
+        className="w-full max-w-[590px] rounded-3xl bg-zinc-100 px-6 py-7 shadow-2xl md:px-10 md:py-9"
+      >
+        <h3 id="confirm-delete-title" className="text-center text-[38px] font-bold leading-none text-zinc-900 md:text-[56px]">
+          {title}
+        </h3>
+        <p id="confirm-delete-description" className="mt-5 text-center text-[24px] leading-tight text-zinc-700 md:mt-7 md:text-[40px]">
+          {message}
+        </p>
 
         <div className="mt-8 grid grid-cols-2 gap-4 md:mt-10 md:gap-6">
           <button
+            ref={cancelButtonRef}
             type="button"
             onClick={onCancel}
             disabled={isLoading}

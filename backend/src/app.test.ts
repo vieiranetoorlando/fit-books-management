@@ -82,6 +82,31 @@ describe('Book API', () => {
     expect(mockBookApi.create).not.toHaveBeenCalled();
   });
 
+  it('stores YYYY-MM-DD as UTC date without day drift', async () => {
+    mockBookApi.create.mockImplementation(async ({ data }) => ({
+      id: 'book-id',
+      createdAt: new Date(),
+      content: null,
+      coverUrl: null,
+      ...data,
+    }));
+
+    const response = await request(app).post('/books').send({
+      title: 'Livro com data UTC',
+      author: 'Autor Teste',
+      description: 'Descricao valida',
+      publishedAt: '1945-08-17',
+    });
+
+    expect(response.status).toBe(201);
+    expect(mockBookApi.create).toHaveBeenCalledTimes(1);
+    const firstCall = mockBookApi.create.mock.calls[0];
+    expect(firstCall).toBeDefined();
+
+    const createPayload = firstCall?.[0] as { data: { publishedAt: Date } };
+    expect(createPayload.data.publishedAt.toISOString()).toBe('1945-08-17T00:00:00.000Z');
+  });
+
   it('returns 404 when deleting an unknown book', async () => {
     mockBookApi.delete.mockRejectedValue(prismaNotFoundError());
 
