@@ -84,14 +84,14 @@ export function Home() {
 
   return (
     <div className="min-h-screen bg-black pt-5">
-      <div className="mx-auto min-h-[calc(100vh-20px)] w-full max-w-[1440px] bg-[#d9d9dd] px-4 pb-10 pt-6 md:px-8 md:pt-8">
+      <div className="mx-auto min-h-[calc(100vh-20px)] w-full max-w-[1440px] bg-[#e0e0e2] px-4 pb-10 pt-6 md:px-8 md:pt-8">
         <div className="mx-auto max-w-[1000px]">
           <header className="mb-6 flex items-center justify-between md:mb-8">
-            <h1 className="text-[52px] font-semibold leading-none text-zinc-900 md:text-[60px]">Livros</h1>
+            <h1 className="text-[32px] font-semibold leading-none text-zinc-900 md:text-[32px]">Livros</h1>
             <button
               type="button"
               onClick={openCreateModal}
-              className="text-[34px] font-semibold leading-none text-zinc-900 md:text-[44px]"
+              className="text-[32px] font-semibold leading-none text-zinc-900 md:text-[32px]"
             >
               Novo
             </button>

@@ -1,4 +1,4 @@
-import { CalendarDays, Image as ImageIcon } from 'lucide-react';
+import { Image as ImageIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { uploadBookCover } from '../services/bookService';
@@ -87,8 +87,10 @@ export function BookFormModal({ isSaving, bookToEdit, onClose, onSubmit }: BookF
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
-  const [imageMode, setImageMode] = useState<'file' | 'url'>('file');
+  const [isImageSourceModalOpen, setIsImageSourceModalOpen] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const hasCover = Boolean(form.coverUrl.trim()) && !previewFailed;
 
@@ -149,7 +151,6 @@ export function BookFormModal({ isSaving, bookToEdit, onClose, onSubmit }: BookF
       setError(null);
       const uploadedUrl = await uploadBookCover(selectedFile);
       setForm((prev) => ({ ...prev, coverUrl: uploadedUrl }));
-      setImageMode('file');
     } catch (uploadError) {
       console.error('Erro ao enviar imagem:', uploadError);
       setError('Falha no upload da imagem. Use JPG/PNG/WEBP com ate 5MB.');
@@ -159,15 +160,33 @@ export function BookFormModal({ isSaving, bookToEdit, onClose, onSubmit }: BookF
     }
   }
 
+  function openImageSourceModal() {
+    setError(null);
+    setUrlInput(form.coverUrl.trim());
+    setIsImageSourceModalOpen(true);
+  }
+
+  function applyCoverUrl() {
+    const trimmed = urlInput.trim();
+    if (!trimmed) {
+      setError('Informe uma URL valida para a capa.');
+      return;
+    }
+
+    setForm((prev) => ({ ...prev, coverUrl: trimmed }));
+    setPreviewFailed(false);
+    setIsImageSourceModalOpen(false);
+  }
+
   return (
     <div className="fixed inset-0 z-[55] overflow-y-auto bg-black/45 p-3 md:p-8">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="book-form-modal-title"
-        className="mx-auto my-2 w-full max-w-[780px] rounded-[22px] bg-zinc-300 p-4 shadow-2xl md:my-4 md:max-h-[92vh] md:overflow-y-auto md:p-10"
+        className="mx-auto my-2 w-full max-w-[780px] rounded-[22px] bg-[#f0f0f0] p-4 shadow-2xl md:my-4 md:max-h-[92vh] md:overflow-y-auto md:p-8"
       >
-        <h2 id="book-form-modal-title" className="mb-7 text-center text-[34px] font-bold text-zinc-900 md:text-[52px]">
+        <h2 id="book-form-modal-title" className="mb-7 text-center text-[34px] font-semibold text-zinc-900 md:text-[46px]">
           {bookToEdit ? 'Editar livro' : 'Novo livro'}
         </h2>
 
@@ -181,7 +200,7 @@ export function BookFormModal({ isSaving, bookToEdit, onClose, onSubmit }: BookF
                 onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
                 placeholder="Titulo"
                 maxLength={TITLE_MAX_LENGTH}
-                className="h-[54px] w-full rounded-2xl bg-zinc-100 px-4 text-[18px] text-zinc-800 outline-none placeholder:text-zinc-500 md:h-[56px] md:text-[24px]"
+                className="h-[54px] w-full rounded-2xl bg-white px-4 text-[18px] text-zinc-800 outline-none placeholder:text-zinc-500 md:h-[56px] md:text-[20px]"
               />
 
               <input
@@ -190,44 +209,23 @@ export function BookFormModal({ isSaving, bookToEdit, onClose, onSubmit }: BookF
                 onChange={(event) => setForm((prev) => ({ ...prev, author: event.target.value }))}
                 placeholder="Autor"
                 maxLength={AUTHOR_MAX_LENGTH}
-                className="h-[54px] w-full rounded-2xl bg-zinc-100 px-4 text-[18px] text-zinc-800 outline-none placeholder:text-zinc-500 md:h-[56px] md:text-[24px]"
+                className="h-[54px] w-full rounded-2xl bg-white px-4 text-[18px] text-zinc-800 outline-none placeholder:text-zinc-500 md:h-[56px] md:text-[20px]"
               />
 
-              <div className="relative">
-                <input
-                  type="text"
-                  value={form.publishedAt}
-                  onChange={(event) => setForm((prev) => ({ ...prev, publishedAt: event.target.value }))}
-                  placeholder="Data de publicacao"
-                  className="h-[54px] w-full rounded-2xl bg-zinc-100 px-4 pr-12 text-[18px] text-zinc-800 outline-none placeholder:text-zinc-500 md:h-[56px] md:text-[24px]"
-                />
-                <CalendarDays className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-700" size={30} />
-              </div>
+              <input
+                type="text"
+                value={form.publishedAt}
+                onChange={(event) => setForm((prev) => ({ ...prev, publishedAt: event.target.value }))}
+                placeholder="Data de publicacao"
+                className="h-[54px] w-full rounded-2xl bg-white px-4 text-[18px] text-zinc-800 outline-none placeholder:text-zinc-500 md:h-[56px] md:text-[20px]"
+              />
             </div>
 
             <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-1 rounded-xl bg-zinc-200 p-1">
-                <button
-                  type="button"
-                  onClick={() => setImageMode('file')}
-                  className={`h-10 rounded-lg text-[14px] font-semibold ${
-                    imageMode === 'file' ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600'
-                  }`}
-                >
-                  Arquivo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setImageMode('url')}
-                  className={`h-10 rounded-lg text-[14px] font-semibold ${
-                    imageMode === 'url' ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600'
-                  }`}
-                >
-                  URL
-                </button>
-              </div>
-
-              <label className="flex h-[220px] cursor-pointer flex-col items-center justify-center rounded-2xl bg-zinc-200 px-4 text-center text-zinc-600 transition hover:bg-zinc-100">
+              <div
+                onClick={openImageSourceModal}
+                className="flex h-[220px] cursor-pointer flex-col items-center justify-center rounded-2xl bg-[#d2d1d7] px-4 text-center text-zinc-600 transition hover:bg-[#cccbd1]"
+              >
                 {hasCover ? (
                   <img
                     src={form.coverUrl}
@@ -242,24 +240,15 @@ export function BookFormModal({ isSaving, bookToEdit, onClose, onSubmit }: BookF
                     <span className="mt-1 text-[13px] text-zinc-500">Imagem selecionada</span>
                   </>
                 )}
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  className="hidden"
-                  onChange={handleCoverUpload}
-                  disabled={isUploading || imageMode === 'url'}
-                />
-              </label>
-
-              {imageMode === 'url' && (
-                <input
-                  type="url"
-                  value={form.coverUrl}
-                  onChange={(event) => setForm((prev) => ({ ...prev, coverUrl: event.target.value }))}
-                  placeholder="https://..."
-                  className="h-[44px] w-full rounded-xl bg-zinc-100 px-3 text-[14px] text-zinc-800 outline-none"
-                />
-              )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={handleCoverUpload}
+                disabled={isUploading}
+              />
             </div>
           </div>
 
@@ -269,11 +258,8 @@ export function BookFormModal({ isSaving, bookToEdit, onClose, onSubmit }: BookF
             placeholder="Descricao"
             rows={7}
             maxLength={DESCRIPTION_MAX_LENGTH}
-            className="min-h-[190px] w-full rounded-2xl bg-zinc-100 px-4 py-4 text-[18px] leading-tight text-zinc-800 outline-none md:min-h-[220px] md:text-[22px]"
+            className="min-h-[190px] w-full rounded-2xl bg-white px-4 py-4 text-[18px] leading-tight text-zinc-800 outline-none md:min-h-[220px] md:text-[20px]"
           />
-          <p className="text-right text-[12px] text-zinc-500 md:text-[14px]">
-            {form.description.length}/{DESCRIPTION_MAX_LENGTH}
-          </p>
 
           {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-[15px] text-red-700 md:text-[18px]">{error}</p>}
 
@@ -282,7 +268,7 @@ export function BookFormModal({ isSaving, bookToEdit, onClose, onSubmit }: BookF
               <button
                 type="button"
                 onClick={onClose}
-                className="h-[52px] rounded-full bg-zinc-200 text-[18px] font-medium text-zinc-800 transition hover:bg-zinc-100 md:h-[60px] md:text-[22px]"
+                className="h-[52px] rounded-full bg-zinc-200 text-[18px] font-medium text-zinc-800 transition hover:bg-zinc-100 md:h-[60px] md:text-[20px]"
               >
                 Cancelar
               </button>
@@ -290,7 +276,7 @@ export function BookFormModal({ isSaving, bookToEdit, onClose, onSubmit }: BookF
               <button
                 type="submit"
                 disabled={isSaving || isUploading}
-                className="h-[52px] rounded-full bg-sky-500 text-[18px] font-medium text-white transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60 md:h-[60px] md:text-[22px]"
+                className="h-[52px] rounded-full bg-sky-500 text-[18px] font-medium text-white transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60 md:h-[60px] md:text-[20px]"
               >
                 {isSaving ? 'Salvando...' : 'Salvar'}
               </button>
@@ -298,6 +284,52 @@ export function BookFormModal({ isSaving, bookToEdit, onClose, onSubmit }: BookF
           </div>
         </form>
       </div>
+
+      {isImageSourceModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/35 p-4">
+          <div className="w-full max-w-[420px] rounded-2xl bg-white p-5 shadow-2xl md:p-6">
+            <h3 className="mb-4 text-center text-[24px] font-semibold text-zinc-900">Adicionar capa</h3>
+
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsImageSourceModalOpen(false);
+                  fileInputRef.current?.click();
+                }}
+                className="h-[48px] w-full rounded-xl bg-zinc-100 text-[16px] font-medium text-zinc-900 transition hover:bg-zinc-200"
+              >
+                Selecionar arquivo local
+              </button>
+
+              <input
+                type="url"
+                value={urlInput}
+                onChange={(event) => setUrlInput(event.target.value)}
+                placeholder="https://..."
+                className="h-[46px] w-full rounded-xl border border-zinc-200 bg-white px-3 text-[14px] text-zinc-800 outline-none"
+              />
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setIsImageSourceModalOpen(false)}
+                  className="h-[46px] rounded-xl bg-zinc-200 text-[15px] font-medium text-zinc-800 transition hover:bg-zinc-300"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={applyCoverUrl}
+                  className="h-[46px] rounded-xl bg-sky-500 text-[15px] font-medium text-white transition hover:bg-sky-600"
+                >
+                  Usar URL
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

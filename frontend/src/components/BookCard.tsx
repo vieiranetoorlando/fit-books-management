@@ -10,9 +10,9 @@ interface BookCardProps {
 
 export function BookCard({ title, author, description, coverUrl, onOpen }: BookCardProps) {
   return (
-    <article className="mx-auto w-full max-w-[360px] overflow-hidden rounded-2xl bg-[#d3d3d8] md:max-w-none">
+    <article className="mx-auto w-full max-w-[360px] overflow-hidden rounded-2xl bg-[#d2d1d7] md:max-w-none">
       <button type="button" onClick={onOpen} className="w-full text-left" aria-label={`Abrir detalhes de ${title}`}>
-        <div className="flex h-[200px] items-center justify-center bg-[#d1d1d6] md:h-[210px]">
+        <div className="flex h-[200px] items-center justify-center bg-[#d2d1d7] md:h-[210px]">
           <BookCover title={title} author={author} coverUrl={coverUrl} className="h-[170px] w-[114px] rounded-sm md:h-[180px] md:w-[120px]" />
         </div>
 

@@ -48,7 +48,7 @@ export function BookDetailsModal({ book, onClose, onEdit, onDelete }: BookDetail
         role="dialog"
         aria-modal="true"
         aria-labelledby="book-details-modal-title"
-        className="mx-auto min-h-[calc(100vh-20px)] w-full max-w-[1440px] bg-[#d9d9dd] px-4 pb-10 pt-5 md:px-8 md:pt-8"
+        className="mx-auto min-h-[calc(100vh-20px)] w-full max-w-[1440px] bg-[#e0e0e2] px-4 pb-10 pt-5 md:px-8 md:pt-8"
       >
         <main className="mx-auto w-full max-w-[1020px]">
           <header className="mb-8 flex items-center justify-between md:mb-10">
