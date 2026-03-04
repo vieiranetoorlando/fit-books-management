@@ -253,13 +253,22 @@ Para as capas padrao funcionarem em qualquer maquina, os arquivos locais precisa
 - `o-senhor-dos-aneis-a-sociedade-do-anel.jpg`
 - `javascript-the-good-parts.jpg`
 
-## 12. Criticidade e Trade-offs
+## 12. Nota sobre Versionamento e Seguranca
+
+Este repositorio versiona intencionalmente apenas as capas de demonstracao em `backend/uploads/seed` para garantir reproducao visual no desafio tecnico.
+
+- Uploads dinamicos de usuarios continuam fora do Git.
+- Arquivos `.env` nao sao versionados.
+- O repositorio inclui somente `.env.example` como modelo de configuracao.
+- As credenciais dos exemplos sao para ambiente local de desenvolvimento e devem ser trocadas em qualquer uso real.
+
+## 13. Criticidade e Trade-offs
 
 - Foco em validacao no backend para garantir integridade dos dados independentemente do frontend.
 - Upload local simplifica o desafio; em producao real, o ideal seria storage externo (S3, GCS, etc.).
 - Frontend usa estado local por simplicidade; para escala maior, caberia cache de dados dedicado.
 
-## 13. Melhorias Futuras
+## 14. Melhorias Futuras
 
 - Cobertura de testes de integracao mais extensa (cenarios de erro de rede e concorrencia).
 - Autenticacao/autorizacao.
