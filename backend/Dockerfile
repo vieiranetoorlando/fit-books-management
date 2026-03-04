@@ -22,7 +22,7 @@ COPY --from=build /app/dist ./dist
 COPY prisma ./prisma
 COPY uploads/seed ./seed-uploads
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
-RUN chmod +x ./docker-entrypoint.sh
+RUN sed -i 's/\r$//' ./docker-entrypoint.sh && chmod +x ./docker-entrypoint.sh
 RUN npx prisma generate
 
 EXPOSE 3000
