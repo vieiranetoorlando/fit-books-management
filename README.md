@@ -22,7 +22,18 @@ O projeto possui:
 - Banco de dados: PostgreSQL 15
 - Infra local: Docker Compose
 
-## 3. Funcionalidades
+## 3. Pre-requisitos
+
+### Execucao com Docker (recomendado)
+- Docker Desktop instalado e em execucao
+- Docker Compose v2 (comando `docker compose`)
+
+### Execucao sem Docker
+- Node.js 22+
+- npm 10+
+- PostgreSQL 15+
+
+## 4. Funcionalidades
 
 - Listagem de livros com ordenacao por criacao
 - Busca por titulo e autor
@@ -35,7 +46,7 @@ O projeto possui:
 - Validacoes de payload no backend
 - Endpoint de health check (`GET /health`)
 
-## 4. Arquitetura e Decisoes Tecnicas
+## 5. Arquitetura e Decisoes Tecnicas
 
 ### Frontend
 - Separacao em `pages`, `components`, `services` e `types`.
@@ -55,7 +66,7 @@ O projeto possui:
 - Backend sobe aplicando migrations automaticamente.
 - Frontend gera build estatico e serve via Nginx.
 
-## 5. Estrutura de Pastas
+## 6. Estrutura de Pastas
 
 ```text
 .
@@ -71,7 +82,7 @@ O projeto possui:
 |-- .env.example
 ```
 
-## 6. Variaveis de Ambiente
+## 7. Variaveis de Ambiente
 
 ### Raiz do projeto (`.env`)
 Baseie-se em `.env.example`:
@@ -97,7 +108,15 @@ Baseie-se em `frontend/.env.example`:
 VITE_API_URL=http://localhost:3000
 ```
 
-## 7. Como Rodar com Docker (Recomendado)
+### Mapeamento de Portas
+
+| Servico | Porta no container | Variavel | Porta padrao local |
+|---|---:|---|---:|
+| PostgreSQL (`db`) | 5432 | `DB_PORT` | 5432 |
+| Backend (`backend`) | 3000 | `BACKEND_PORT` | 3000 |
+| Frontend (`frontend`) | 80 | `FRONTEND_PORT` | 5173 |
+
+## 8. Como Rodar com Docker (Recomendado)
 
 1. Clonar repositorio:
 ```bash
@@ -137,7 +156,7 @@ docker compose exec backend npx prisma db seed
 docker compose down
 ```
 
-## 8. Checklist de Clone Limpo
+## 9. Checklist de Clone Limpo
 
 Para validar que qualquer pessoa consegue rodar:
 
@@ -154,7 +173,7 @@ Resultados esperados:
 - `http://localhost:<BACKEND_PORT>/health` respondendo `{"status":"ok"}`
 - `http://localhost:<FRONTEND_PORT>` carregando a aplicacao
 
-## 9. Como Rodar sem Docker
+## 10. Como Rodar sem Docker
 
 ### Banco
 Suba um PostgreSQL local e configure a `DATABASE_URL` do backend.
@@ -184,7 +203,9 @@ npm install
 npm run dev
 ```
 
-## 10. Testes e Qualidade
+## 11. Testes e Qualidade
+
+Voce pode executar os comandos entrando em cada pasta (como abaixo) ou direto da raiz com `npm --prefix`.
 
 ### Frontend
 ```bash
@@ -201,7 +222,25 @@ npm run build
 npm test
 ```
 
-## 11. Troubleshooting
+### Execucao rapida de testes pela raiz
+```bash
+npm --prefix frontend run lint
+npm --prefix frontend test
+npm --prefix frontend run build
+npm --prefix backend run build
+npm --prefix backend test
+```
+
+## 12. Troubleshooting
+
+### Diagnostico rapido
+Use estes comandos antes de analisar erros especificos:
+```bash
+docker compose ps -a
+docker compose logs -f backend
+docker compose logs -f db
+docker compose logs -f frontend
+```
 
 ### Erro de porta em uso (`bind: ... port is already allocated`)
 Edite o `.env` na raiz para trocar portas:
@@ -215,6 +254,16 @@ FRONTEND_PORT=5174
 Depois:
 ```bash
 docker compose up -d --build
+```
+
+### Backend em loop com status `Restarting (127)` no Windows
+Se o log mostrar erro relacionado a `docker-entrypoint.sh: not found`, normalmente e problema de line ending (CRLF).
+
+Este repositorio ja inclui protecao para isso (`.gitattributes` + normalizacao no Dockerfile). Em clones antigos, rode:
+```bash
+docker compose down
+docker compose build --no-cache backend
+docker compose up -d
 ```
 
 ### API nao sobe por problema de banco/migration
@@ -250,6 +299,8 @@ npm run dev
 docker compose ps
 ```
 
+Se as portas tiverem sido alteradas no `.env`, valide os endpoints com os novos valores de `BACKEND_PORT` e `FRONTEND_PORT`.
+
 ### Popular dados de exemplo manualmente
 ```bash
 docker compose exec backend npx prisma db seed
@@ -262,7 +313,7 @@ Para as capas padrao funcionarem em qualquer maquina, os arquivos locais precisa
 - `o-senhor-dos-aneis-a-sociedade-do-anel.jpg`
 - `javascript-the-good-parts.jpg`
 
-## 12. Nota sobre Versionamento e Seguranca
+## 13. Nota sobre Versionamento e Seguranca
 
 Este repositorio versiona intencionalmente alguns arquivos que, em um projeto real, normalmente nao seriam versionados, para garantir reproducao completa no desafio tecnico.
 
@@ -272,7 +323,7 @@ Este repositorio versiona intencionalmente alguns arquivos que, em um projeto re
 - O repositorio inclui somente `.env.example` como modelo de configuracao.
 - As credenciais dos exemplos sao para ambiente local de desenvolvimento e devem ser trocadas em qualquer uso real.
 
-## 13. Criticidade e Trade-offs
+## 14. Criticidade e Trade-offs
 
 - Foco em validacao no backend para garantir integridade dos dados independentemente do frontend.
 - Upload local simplifica o desafio; em producao real, o ideal seria storage externo (S3, GCS, etc.).
