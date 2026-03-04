@@ -85,6 +85,11 @@ BACKEND_PORT=3000
 FRONTEND_PORT=5173
 ```
 
+Importante:
+- O arquivo `.env` e o arquivo real lido pelo Docker Compose na sua maquina.
+- O arquivo `.env.example` e somente um modelo versionado no Git para facilitar configuracao.
+- Se voce alterar `BACKEND_PORT` ou `FRONTEND_PORT`, as URLs de acesso mudam de acordo com esses valores.
+
 ### Frontend (`frontend/.env`) para execucao sem Docker
 Baseie-se em `frontend/.env.example`:
 
@@ -115,6 +120,10 @@ docker compose up -d --build
 ```
 
 4. Acessar aplicacao:
+- Frontend: `http://localhost:<FRONTEND_PORT>`
+- Backend (health): `http://localhost:<BACKEND_PORT>/health`
+
+Exemplo com valores padrao:
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:3000/health`
 
@@ -142,8 +151,8 @@ Resultados esperados:
 - `db` com status `healthy`
 - `backend` com status `healthy`
 - `frontend` com status `up`
-- `http://localhost:3000/health` respondendo `{"status":"ok"}`
-- `http://localhost:5173` carregando a aplicacao
+- `http://localhost:<BACKEND_PORT>/health` respondendo `{"status":"ok"}`
+- `http://localhost:<FRONTEND_PORT>` carregando a aplicacao
 
 ## 9. Como Rodar sem Docker
 
@@ -255,8 +264,9 @@ Para as capas padrao funcionarem em qualquer maquina, os arquivos locais precisa
 
 ## 12. Nota sobre Versionamento e Seguranca
 
-Este repositorio versiona intencionalmente apenas as capas de demonstracao em `backend/uploads/seed` para garantir reproducao visual no desafio tecnico.
+Este repositorio versiona intencionalmente alguns arquivos que, em um projeto real, normalmente nao seriam versionados, para garantir reproducao completa no desafio tecnico.
 
+- Apenas as capas fixas de demonstracao em `backend/uploads/seed` foram versionadas para garantir o mesmo resultado visual no clone.
 - Uploads dinamicos de usuarios continuam fora do Git.
 - Arquivos `.env` nao sao versionados.
 - O repositorio inclui somente `.env.example` como modelo de configuracao.
@@ -267,10 +277,3 @@ Este repositorio versiona intencionalmente apenas as capas de demonstracao em `b
 - Foco em validacao no backend para garantir integridade dos dados independentemente do frontend.
 - Upload local simplifica o desafio; em producao real, o ideal seria storage externo (S3, GCS, etc.).
 - Frontend usa estado local por simplicidade; para escala maior, caberia cache de dados dedicado.
-
-## 14. Melhorias Futuras
-
-- Cobertura de testes de integracao mais extensa (cenarios de erro de rede e concorrencia).
-- Autenticacao/autorizacao.
-- Observabilidade (logs estruturados, metricas e tracing).
-- Pipeline CI para lint, testes e build em pull request.
